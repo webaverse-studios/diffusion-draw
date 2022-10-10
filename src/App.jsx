@@ -2,6 +2,8 @@ import React, { useEffect } from "react";
 import "./App.css";
 
 function App() {
+  const [size, setSize] = React.useState(5);
+
   useEffect(() => {
     const canvas = document.querySelector("canvas"),
       toolBtns = document.querySelectorAll(".tool"),
@@ -163,6 +165,28 @@ function App() {
     });
   };
 
+  const uploadImage = () => {
+    const canvas = document.querySelector("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = (e) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    };
+    input.click();
+  };
+
   return (
     <div className="container">
       <section className="tools-board">
@@ -184,7 +208,16 @@ function App() {
               Triangle
             </li>
             <li className="option">
-              <input type="range" id="size-slider" min="1" max="30" value="5" />
+              <input
+                type="range"
+                id="size-slider"
+                min="1"
+                max="30"
+                value={size}
+                onChange={(e) => {
+                  setSize(e.target.value);
+                }}
+              />
             </li>
           </ul>
         </div>
@@ -206,6 +239,9 @@ function App() {
           </button>
           <button className="save-img" onClick={saveImage}>
             Save Image
+          </button>
+          <button className="save-img" onClick={uploadImage}>
+            Upload Image
           </button>
         </div>
       </section>
