@@ -1,9 +1,11 @@
-import React, { useEffect } from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
 import "./App.css";
-import { IMAGE_HEIGHT, IMAGE_WIDTH } from "./constants";
+import { IMAGE_HEIGHT, IMAGE_WIDTH, STABLE_DIFFUSION_URL } from "./constants";
 
 function App() {
-  const [size, setSize] = React.useState(5);
+  const [generating, setGenerating] = useState(false);
+  const [size, setSize] = useState(5);
 
   useEffect(() => {
     const canvas = document.querySelector("canvas"),
@@ -132,6 +134,10 @@ function App() {
   }, []);
 
   const clearCanvas = () => {
+    if (generating) {
+      return;
+    }
+
     const canvas = document.querySelector("canvas");
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -157,6 +163,10 @@ function App() {
   };
 
   const saveImage = () => {
+    if (generating) {
+      return;
+    }
+
     const canvas = document.querySelector("canvas");
     resizeImage(
       canvas.toDataURL(),
@@ -172,6 +182,10 @@ function App() {
   };
 
   const uploadImage = () => {
+    if (generating) {
+      return;
+    }
+
     const canvas = document.querySelector("canvas");
     const ctx = canvas.getContext("2d");
 
@@ -198,6 +212,41 @@ function App() {
       reader.readAsDataURL(e.target.files[0]);
     };
     input.click();
+  };
+
+  const generateImage = async () => {
+    if (generating) {
+      return;
+    }
+
+    setGenerating(true);
+    const canvas = document.querySelector("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const data = new FormData();
+    data.append("init_image", canvas.toDataURL());
+    const response = await axios.post(
+      "http://localhost:8080/" + STABLE_DIFFUSION_URL,
+      { init_image: canvas.toDataURL() },
+      {
+        headers: { "Access-Control-Allow-Origin": "*" },
+        responseType: "arraybuffer",
+      }
+    );
+
+    const bytes = response.data;
+    const arrayBufferView = new Uint8Array(bytes);
+    const blob = new Blob([arrayBufferView], { type: "image/png" });
+    const urlCreator = window.URL || window.webkitURL;
+    const imageUrl = urlCreator.createObjectURL(blob);
+
+    const img = new Image(IMAGE_WIDTH, IMAGE_HEIGHT);
+    img.onload = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      setGenerating(false);
+    };
+    img.src = imageUrl;
   };
 
   return (
@@ -247,14 +296,33 @@ function App() {
         </div>
 
         <div className="row buttons">
-          <button className="clear-canvas" onClick={clearCanvas}>
+          <button
+            className="clear-canvas"
+            onClick={clearCanvas}
+            disabled={generating}
+          >
             Clear Canvas
           </button>
-          <button className="save-img" onClick={saveImage}>
+          <button
+            className="save-img"
+            onClick={saveImage}
+            disabled={generating}
+          >
             Save Image
           </button>
-          <button className="save-img" onClick={uploadImage}>
+          <button
+            className="save-img"
+            onClick={uploadImage}
+            disabled={generating}
+          >
             Upload Image
+          </button>
+          <button
+            className="clear-canvas"
+            onClick={generateImage}
+            disabled={generating}
+          >
+            {generating ? "Generating Image" : "Generate Image"}
           </button>
         </div>
       </section>
