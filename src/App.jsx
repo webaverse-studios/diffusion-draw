@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import "./App.css";
+import { IMAGE_HEIGHT, IMAGE_WIDTH } from "./constants";
 
 function App() {
   const [size, setSize] = React.useState(5);
@@ -157,12 +158,17 @@ function App() {
 
   const saveImage = () => {
     const canvas = document.querySelector("canvas");
-    resizeImage(canvas.toDataURL(), 1024, 1024, (sizeUpdatedDataURL) => {
-      const link = document.createElement("a");
-      link.download = "image.png";
-      link.href = sizeUpdatedDataURL;
-      link.click();
-    });
+    resizeImage(
+      canvas.toDataURL(),
+      IMAGE_WIDTH,
+      IMAGE_HEIGHT,
+      (sizeUpdatedDataURL) => {
+        const link = document.createElement("a");
+        link.download = "image.png";
+        link.href = sizeUpdatedDataURL;
+        link.click();
+      }
+    );
   };
 
   const uploadImage = () => {
@@ -177,8 +183,10 @@ function App() {
       reader.onload = () => {
         const img = new Image();
         img.onload = () => {
-          if (img.width !== 1024 && img.height !== 1024) {
-            alert("Invalid image size, must be 1024x1024");
+          if (img.width !== IMAGE_WIDTH && img.height !== IMAGE_HEIGHT) {
+            alert(
+              "Invalid image size, must be " + IMAGE_WIDTH + "X" + IMAGE_HEIGHT
+            );
             return;
           }
 
@@ -251,7 +259,7 @@ function App() {
         </div>
       </section>
       <section className="drawing-board">
-        <canvas width="1024" height="1024"></canvas>
+        <canvas width={IMAGE_WIDTH} height={IMAGE_HEIGHT}></canvas>
       </section>
     </div>
   );
