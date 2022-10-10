@@ -34,32 +34,47 @@ function App() {
       canvas.height = window.innerHeight;
     });
 
-    const drawRect = (e) => {
+    function getOffsetPosition(evt, parent) {
+      var position = {
+        x: evt.targetTouches ? evt.targetTouches[0].pageX : evt.clientX,
+        y: evt.targetTouches ? evt.targetTouches[0].pageY : evt.clientY,
+      };
+
+      while (parent.offsetParent) {
+        position.x -= parent.offsetLeft - parent.scrollLeft;
+        position.y -= parent.offsetTop - parent.scrollTop;
+
+        parent = parent.offsetParent;
+      }
+
+      return position;
+    }
+
+    const drawRect = (offsetX, offsetY) => {
       ctx.fillRect(
-        e.offsetX,
-        e.offsetY,
-        prevMouseX - e.offsetX,
-        prevMouseY - e.offsetY
+        offsetX,
+        offsetY,
+        prevMouseX - offsetX,
+        prevMouseY - offsetY
       );
     };
 
-    const drawCircle = (e) => {
+    const drawCircle = (offsetX, offsetY) => {
       ctx.beginPath(); //creating a new path to draw circle
       // getting radius for circle according to the mouse pointer
       let radius = Math.sqrt(
-        Math.pow(prevMouseX - e.offsetX, 2) +
-          Math.pow(prevMouseY - e.offsetY, 2)
+        Math.pow(prevMouseX - offsetX, 2) + Math.pow(prevMouseY - offsetY, 2)
       );
       ctx.arc(prevMouseX, prevMouseY, radius, 0, 2 * Math.PI); //creating circle according to the mouse pointer
       ctx.stroke();
       ctx.fill(); //if fillColor is checked fill circle else draw border circle
     };
 
-    const drawTriangle = (e) => {
+    const drawTriangle = (offsetX, offsetY) => {
       ctx.beginPath(); //creating new path to draw circle
       ctx.moveTo(prevMouseX, prevMouseY); // moving triangle to the mouse pointer
-      ctx.lineTo(e.offsetX, e.offsetY); // creating first line according to the mouse pointer
-      ctx.lineTo(prevMouseX * 2 - e.offsetX, e.offsetY); // creating bottom line of the triangle
+      ctx.lineTo(offsetX, offsetY); // creating first line according to the mouse pointer
+      ctx.lineTo(prevMouseX * 2 - offsetX, offsetY); // creating bottom line of the triangle
       ctx.closePath(); // closing path of the triangle so the third line draw automatically
       ctx.stroke();
       ctx.fill(); //if fillColor is checked fill circle else draw border triangle
@@ -67,9 +82,10 @@ function App() {
 
     const startDraw = (e) => {
       e.preventDefault();
+      const position = getOffsetPosition(e, e.target);
       isDrawing = true;
-      prevMouseX = e.offsetX; //passing current MouseX position as prevMouseX value
-      prevMouseY = e.offsetY; //passing current MouseY position as prevMouseY value
+      prevMouseX = position.x; //passing current MouseX position as prevMouseX value
+      prevMouseY = position.y; //passing current MouseY position as prevMouseY value
       ctx.beginPath(); //creating new path to draw
       ctx.lineWidth = brushWidth; //passing brushSize as line width
       snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height); //coping canvas data and passing as snapshot value.. this avoids dragging the image
@@ -79,18 +95,19 @@ function App() {
 
     const drawing = (e) => {
       if (!isDrawing) return; //if isDrawing is flase return form here
+      const position = getOffsetPosition(e, e.target);
       ctx.putImageData(snapshot, 0, 0); //adding the copied canvas on to this canvas
 
       if (selectedTool === "brush" || selectedTool === "eraser") {
         ctx.strokeStyle = selectedTool === "eraser" ? "#fff" : selectedColor; //if selected tool is eraser then set strokeStyle to white to paint white color onto the existing canvas content else set the stroke color to selected color
-        ctx.lineTo(e.offsetX, e.offsetY); //creating line according to the mouse pointer
+        ctx.lineTo(position.x, position.y); //creating line according to the mouse pointer
         ctx.stroke(); //drawin/filling line with color
       } else if (selectedTool === "rectangle") {
-        drawRect(e);
+        drawRect(position.x, position.y);
       } else if (selectedTool === "circle") {
-        drawCircle(e);
+        drawCircle(position.x, position.y);
       } else {
-        drawTriangle(e);
+        drawTriangle(position.x, position.y);
       }
     };
 
@@ -125,15 +142,21 @@ function App() {
       });
     });
 
-    colorPicker;
     colorPicker.addEventListener("change", () => {
       colorPicker.parentElement.style.background = colorPicker.value;
       colorPicker.parentElement.click();
     });
 
+    canvas.addEventListener("touchstart", startDraw);
+    canvas.addEventListener("touchmove", drawing);
+    canvas.addEventListener("touchend", () => {
+      isDrawing = false;
+    });
     canvas.addEventListener("mousedown", startDraw);
     canvas.addEventListener("mousemove", drawing);
-    canvas.addEventListener("mouseup", () => (isDrawing = false));
+    canvas.addEventListener("mouseup", () => {
+      isDrawing = false;
+    });
   }, []);
 
   const clearCanvas = () => {
