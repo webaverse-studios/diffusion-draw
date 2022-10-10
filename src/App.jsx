@@ -269,7 +269,7 @@ function App() {
         IMAGE_HEIGHT,
         async (sizeUpdatedDataURL) => {
           const response = await axios.post(
-            "http://localhost:8080/" + STABLE_DIFFUSION_URL,
+            STABLE_DIFFUSION_URL,
             { init_image: sizeUpdatedDataURL },
             {
               params: { s: prompt },
