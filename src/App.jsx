@@ -111,6 +111,12 @@ function App() {
     canvas.addEventListener("mouseup", () => isDrawing = false);
   }, [])
 
+  const clearCanvas = () => {
+    const canvas = document.querySelector("canvas")
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
   return (
     <div className="container">
       <section className="tools-board">
@@ -139,7 +145,7 @@ function App() {
         </div>
 
         <div className="row buttons">
-          <button className="clear-canvas">Clear Canvas</button>
+          <button className="clear-canvas" onClick={clearCanvas}>Clear Canvas</button>
           <button className="save-img">Save Image</button>
         </div>
       </section>
