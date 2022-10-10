@@ -7,6 +7,7 @@ function App() {
   const [generating, setGenerating] = useState(false);
   const [size, setSize] = useState(5);
   const [color, setColor] = useState("#4a9f7");
+  const [prompt, setPrompt] = useState("");
 
   useEffect(() => {
     const canvas = document.querySelector("canvas"),
@@ -204,8 +205,8 @@ function App() {
     const canvas = document.querySelector("canvas");
     resizeImage(
       canvas.toDataURL(),
-      IMAGE_WIDTH,
-      IMAGE_HEIGHT,
+      canvas.width,
+      canvas.height,
       (sizeUpdatedDataURL) => {
         const link = document.createElement("a");
         link.download = "image.png";
@@ -231,15 +232,17 @@ function App() {
       reader.onload = () => {
         const img = new Image();
         img.onload = () => {
-          if (img.width !== IMAGE_WIDTH && img.height !== IMAGE_HEIGHT) {
-            alert(
-              "Invalid image size, must be " + IMAGE_WIDTH + "X" + IMAGE_HEIGHT
-            );
-            return;
-          }
-
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 0, 0);
+          ctx.drawImage(
+            img,
+            0,
+            0,
+            img.width,
+            img.height,
+            0,
+            0,
+            canvas.width,
+            canvas.height
+          );
         };
         img.src = reader.result;
       };
@@ -249,45 +252,60 @@ function App() {
   };
 
   const generateImage = () => {
-    if (generating) {
-      return;
-    }
-
-    setGenerating(true);
-    const canvas = document.querySelector("canvas");
-    const ctx = canvas.getContext("2d");
-
-    const data = new FormData();
-    data.append("init_image", canvas.toDataURL());
-    resizeImage(
-      canvas.toDataURL(),
-      IMAGE_WIDTH,
-      IMAGE_HEIGHT,
-      async (sizeUpdatedDataURL) => {
-        const response = await axios.post(
-          "http://localhost:8080/" + STABLE_DIFFUSION_URL,
-          { init_image: sizeUpdatedDataURL },
-          {
-            headers: { "Access-Control-Allow-Origin": "*" },
-            responseType: "arraybuffer",
-          }
-        );
-
-        const bytes = response.data;
-        const arrayBufferView = new Uint8Array(bytes);
-        const blob = new Blob([arrayBufferView], { type: "image/png" });
-        const urlCreator = window.URL || window.webkitURL;
-        const imageUrl = urlCreator.createObjectURL(blob);
-
-        const img = new Image(IMAGE_WIDTH, IMAGE_HEIGHT);
-        img.onload = () => {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 0, 0);
-          setGenerating(false);
-        };
-        img.src = imageUrl;
+    try {
+      if (generating) {
+        return;
       }
-    );
+
+      setGenerating(true);
+      const canvas = document.querySelector("canvas");
+      const ctx = canvas.getContext("2d");
+
+      const data = new FormData();
+      data.append("init_image", canvas.toDataURL());
+      resizeImage(
+        canvas.toDataURL(),
+        IMAGE_WIDTH,
+        IMAGE_HEIGHT,
+        async (sizeUpdatedDataURL) => {
+          const response = await axios.post(
+            "http://localhost:8080/" + STABLE_DIFFUSION_URL,
+            { init_image: sizeUpdatedDataURL },
+            {
+              params: { s: prompt },
+              headers: { "Access-Control-Allow-Origin": "*" },
+              responseType: "arraybuffer",
+            }
+          );
+
+          const bytes = response.data;
+          const arrayBufferView = new Uint8Array(bytes);
+          const blob = new Blob([arrayBufferView], { type: "image/png" });
+          const urlCreator = window.URL || window.webkitURL;
+          const imageUrl = urlCreator.createObjectURL(blob);
+
+          const img = new Image();
+          img.onload = () => {
+            ctx.drawImage(
+              img,
+              0,
+              0,
+              img.width,
+              img.height,
+              0,
+              0,
+              canvas.width,
+              canvas.height
+            );
+            setGenerating(false);
+          };
+          img.src = imageUrl;
+        }
+      );
+    } catch (e) {
+      console.log(e);
+      setGenerating(false);
+    }
   };
 
   return (
@@ -344,6 +362,13 @@ function App() {
         </div>
 
         <div className="row buttons">
+          <label>Prompt</label>
+          <input
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+          ></input>
+          <br />
+          <br />
           <button
             className="clear-canvas"
             onClick={clearCanvas}
