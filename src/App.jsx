@@ -27,6 +27,8 @@ function App() {
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    ctx.fillStyle = "#FFFF";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // if the window size changes, resize the canvas
     window.addEventListener("resize", () => {
@@ -118,7 +120,6 @@ function App() {
         document.querySelector(".options .active").classList.remove("active");
         btn.classList.add("active");
         selectedTool = btn.id;
-        console.log(btn.id);
       });
     });
 
@@ -167,6 +168,9 @@ function App() {
     const canvas = document.querySelector("canvas");
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#FFFF";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
   };
 
   const resizeImage = (url, width, height, callback) => {
@@ -181,11 +185,15 @@ function App() {
       }
       canvas.width = width;
       canvas.height = height;
+
+      canvas.getContext("2d").fillStyle = "#FFFF";
+      canvas.getContext("2d").fillRect(0, 0, canvas.width, canvas.height);
       canvas.getContext("2d").drawImage(sourceImage, 0, 0, width, height);
       callback(canvas.toDataURL());
     };
 
     sourceImage.src = url;
+    sourceImage.background;
   };
 
   const saveImage = () => {
@@ -240,7 +248,7 @@ function App() {
     input.click();
   };
 
-  const generateImage = async () => {
+  const generateImage = () => {
     if (generating) {
       return;
     }
@@ -251,28 +259,35 @@ function App() {
 
     const data = new FormData();
     data.append("init_image", canvas.toDataURL());
-    const response = await axios.post(
-      "http://localhost:8080/" + STABLE_DIFFUSION_URL,
-      { init_image: canvas.toDataURL() },
-      {
-        headers: { "Access-Control-Allow-Origin": "*" },
-        responseType: "arraybuffer",
+    resizeImage(
+      canvas.toDataURL(),
+      IMAGE_WIDTH,
+      IMAGE_HEIGHT,
+      async (sizeUpdatedDataURL) => {
+        const response = await axios.post(
+          "http://localhost:8080/" + STABLE_DIFFUSION_URL,
+          { init_image: sizeUpdatedDataURL },
+          {
+            headers: { "Access-Control-Allow-Origin": "*" },
+            responseType: "arraybuffer",
+          }
+        );
+
+        const bytes = response.data;
+        const arrayBufferView = new Uint8Array(bytes);
+        const blob = new Blob([arrayBufferView], { type: "image/png" });
+        const urlCreator = window.URL || window.webkitURL;
+        const imageUrl = urlCreator.createObjectURL(blob);
+
+        const img = new Image(IMAGE_WIDTH, IMAGE_HEIGHT);
+        img.onload = () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+          setGenerating(false);
+        };
+        img.src = imageUrl;
       }
     );
-
-    const bytes = response.data;
-    const arrayBufferView = new Uint8Array(bytes);
-    const blob = new Blob([arrayBufferView], { type: "image/png" });
-    const urlCreator = window.URL || window.webkitURL;
-    const imageUrl = urlCreator.createObjectURL(blob);
-
-    const img = new Image(IMAGE_WIDTH, IMAGE_HEIGHT);
-    img.onload = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0);
-      setGenerating(false);
-    };
-    img.src = imageUrl;
   };
 
   return (
