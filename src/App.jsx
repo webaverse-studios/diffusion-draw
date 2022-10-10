@@ -6,13 +6,14 @@ import { IMAGE_HEIGHT, IMAGE_WIDTH, STABLE_DIFFUSION_URL } from "./constants";
 function App() {
   const [generating, setGenerating] = useState(false);
   const [size, setSize] = useState(5);
+  const [color, setColor] = useState("#4a9f7");
 
   useEffect(() => {
     const canvas = document.querySelector("canvas"),
       toolBtns = document.querySelectorAll(".tool"),
       sizeSlider = document.querySelector("#size-slider"),
       colorBtns = document.querySelectorAll(".colors .option"),
-      // colorPicker = document.querySelectorAll("#color-picker"),
+      colorPicker = document.querySelectorAll("#color-picker")[0],
       ctx = canvas.getContext("2d");
 
     // global variables with default values
@@ -65,6 +66,7 @@ function App() {
     };
 
     const startDraw = (e) => {
+      e.preventDefault();
       isDrawing = true;
       prevMouseX = e.offsetX; //passing current MouseX position as prevMouseX value
       prevMouseY = e.offsetY; //passing current MouseY position as prevMouseY value
@@ -123,10 +125,11 @@ function App() {
       });
     });
 
-    // colorPicker.addEventListener("change", () => {
-    //     colorPicker.parentElement.style.background = colorPicker.value;
-    //     colorPicker.parentElement.click();
-    // });
+    colorPicker;
+    colorPicker.addEventListener("change", () => {
+      colorPicker.parentElement.style.background = colorPicker.value;
+      colorPicker.parentElement.click();
+    });
 
     canvas.addEventListener("mousedown", startDraw);
     canvas.addEventListener("mousemove", drawing);
@@ -254,19 +257,19 @@ function App() {
       <section className="tools-board">
         <div className="row">
           <ul className="options">
-            <li className="option active tool" id="brush">
+            <li className="option active tool" id="brush" key={0}>
               Brush
             </li>
-            <li className="option tool" id="eraser">
+            <li className="option tool" id="eraser" key={1}>
               Eraser
             </li>
-            <li className="option tool" id="rectangle">
+            <li className="option tool" id="rectangle" key={2}>
               Rectangle
             </li>
-            <li className="option tool" id="circle">
+            <li className="option tool" id="circle" key={3}>
               Circle
             </li>
-            <li className="option tool" id="triangle">
+            <li className="option tool" id="triangle" key={4}>
               Triangle
             </li>
             <li className="option">
@@ -285,12 +288,19 @@ function App() {
         </div>
         <div className="row colors">
           <ul className="options">
-            <li className="option"></li>
-            <li className="option selected"></li>
-            <li className="option"></li>
-            <li className="option"></li>
-            <li className="option">
-              <input type="color" id="color-picker" value="#4a9f7" />
+            <li className="option" key={0}></li>
+            <li className="option selected" key={1}></li>
+            <li className="option" key={2}></li>
+            <li className="option" key={3}></li>
+            <li className="option" key={4}>
+              <input
+                type="color"
+                id="color-picker"
+                value={color}
+                onChange={(e) => {
+                  setColor(e.target.value);
+                }}
+              />
             </li>
           </ul>
         </div>

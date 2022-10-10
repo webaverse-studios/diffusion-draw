@@ -51,8 +51,8 @@ section {
   padding-left: 10px;
 }
 
-.option:is(:hover, .active) :where(span, label) {
-  color: #000;
+.option:is(.active) {
+  color: rgb(255, 0, 0);
 }
 
 .option #size-slider {
