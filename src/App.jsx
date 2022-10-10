@@ -177,6 +177,11 @@ function App() {
       reader.onload = () => {
         const img = new Image();
         img.onload = () => {
+          if (img.width !== 1024 && img.height !== 1024) {
+            alert("Invalid image size, must be 1024x1024");
+            return;
+          }
+
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.drawImage(img, 0, 0);
         };
