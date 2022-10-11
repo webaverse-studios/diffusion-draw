@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import "./App.css";
 import { IMAGE_HEIGHT, IMAGE_WIDTH, STABLE_DIFFUSION_URL } from "./constants";
+import { Buffer } from "buffer";
 
 function App() {
   const [generating, setGenerating] = useState(false);
@@ -261,8 +262,6 @@ function App() {
       const canvas = document.querySelector("canvas");
       const ctx = canvas.getContext("2d");
 
-      const data = new FormData();
-      data.append("init_image", canvas.toDataURL());
       resizeImage(
         canvas.toDataURL(),
         IMAGE_WIDTH,
@@ -270,7 +269,7 @@ function App() {
         async (sizeUpdatedDataURL) => {
           const response = await axios.post(
             STABLE_DIFFUSION_URL,
-            { init_image: sizeUpdatedDataURL },
+            sizeUpdatedDataURL,
             {
               params: { s: prompt },
               headers: { "Access-Control-Allow-Origin": "*" },
