@@ -4,124 +4,147 @@ import "./App.css";
 import { IMAGE_HEIGHT, IMAGE_WIDTH, STABLE_DIFFUSION_URL } from "./constants";
 import { Buffer } from "buffer";
 
+let prevMouseX,
+prevMouseY,
+snapshot,
+selectedTool = "brush",
+brushWidth = 5, isDrawing, canvas, ctx, color = "#000000";
+
+function setIsDrawing(value) {
+  isDrawing = value;
+}
+
+function setCanvas(value) {
+  canvas = value;
+}
+
+function setCtx(value) {
+  ctx = value;
+}
+
 function App() {
   const [generating, setGenerating] = useState(false);
   const [size, setSize] = useState(5);
-  const [color, setColor] = useState("#4a9f7");
   const [prompt, setPrompt] = useState("");
   const [tiling, setTiling] = useState(false);
   const [strength, setStrength] = useState(50);
+  const [swatch, setSwatch] = useState(color);
+
+  function setColor(value) {
+    color = value;
+    setSwatch(value)
+  }
+
+  function getOffsetPosition(evt, parent) {
+    var position = {
+      x: evt.targetTouches ? evt.targetTouches[0].pageX : evt.clientX,
+      y: evt.targetTouches ? evt.targetTouches[0].pageY : evt.clientY,
+    };
+
+    while (parent.offsetParent) {
+      position.x -= parent.offsetLeft - parent.scrollLeft;
+      position.y -= parent.offsetTop - parent.scrollTop;
+
+      parent = parent.offsetParent;
+    }
+
+    return position;
+  }
+
+  const drawRect = (offsetX, offsetY) => {
+    ctx.fillRect(
+      offsetX,
+      offsetY,
+      prevMouseX - offsetX,
+      prevMouseY - offsetY
+    );
+  };
+
+  const drawCircle = (offsetX, offsetY) => {
+    ctx.beginPath(); //creating a new path to draw circle
+    // getting radius for circle according to the mouse pointer
+    let radius = Math.sqrt(
+      Math.pow(prevMouseX - offsetX, 2) + Math.pow(prevMouseY - offsetY, 2)
+    );
+    ctx.arc(prevMouseX, prevMouseY, radius, 0, 2 * Math.PI); //creating circle according to the mouse pointer
+    ctx.stroke();
+    ctx.fill(); //if fillColor is checked fill circle else draw border circle
+  };
+
+  const drawTriangle = (offsetX, offsetY) => {
+    ctx.beginPath(); //creating new path to draw circle
+    ctx.moveTo(prevMouseX, prevMouseY); // moving triangle to the mouse pointer
+    ctx.lineTo(offsetX, offsetY); // creating first line according to the mouse pointer
+    ctx.lineTo(prevMouseX * 2 - offsetX, offsetY); // creating bottom line of the triangle
+    ctx.closePath(); // closing path of the triangle so the third line draw automatically
+    ctx.stroke();
+    ctx.fill(); //if fillColor is checked fill circle else draw border triangle
+  };
+
+  const startDraw = (e) => {
+    e.preventDefault();
+    const canvas = document.querySelector("canvas");
+    const ctx = canvas.getContext("2d");
+    // get canvas
+    
+    const position = getOffsetPosition(e, e.target);
+    setIsDrawing(true);
+    prevMouseX = position.x; //passing current MouseX position as prevMouseX value
+    prevMouseY = position.y; //passing current MouseY position as prevMouseY value
+    ctx.beginPath(); //creating new path to draw
+    ctx.lineWidth = brushWidth; //passing brushSize as line width
+    snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height); //coping canvas data and passing as snapshot value.. this avoids dragging the image
+    ctx.strokeStyle = color; // passing selectedColor as stroke syle
+    ctx.fillStyle = color; // passing selectedColor as fill style
+  };
+
+  const drawing = (e) => {
+    if (!isDrawing) return console.log('not drawing'); //if isDrawing is flase return form here
+    else console.log('drawing')
+    const position = getOffsetPosition(e, e.target);
+    ctx.putImageData(snapshot, 0, 0); //adding the copied canvas on to this canvas
+
+    if (selectedTool === "brush" || selectedTool === "eraser") {
+      ctx.strokeStyle = selectedTool === "eraser" ? "#fff" : color; //if selected tool is eraser then set strokeStyle to white to paint white color onto the existing canvas content else set the stroke color to selected color
+      ctx.lineTo(position.x, position.y); //creating line according to the mouse pointer
+      ctx.stroke(); //drawin/filling line with color
+    } else if (selectedTool === "rectangle") {
+      drawRect(position.x, position.y);
+    } else if (selectedTool === "circle") {
+      drawCircle(position.x, position.y);
+    } else {
+      drawTriangle(position.x, position.y);
+    }
+  };
 
   useEffect(() => {
-    const canvas = document.querySelector("canvas"),
-      toolBtns = document.querySelectorAll(".tool"),
-      sizeSlider = document.querySelector("#size-slider"),
-      colorBtns = document.querySelectorAll(".colors .option"),
-      colorPicker = document.querySelectorAll("#color-picker")[0],
-      ctx = canvas.getContext("2d");
+
+    const canvas = document.querySelector("canvas");
+    const ctx = canvas.getContext("2d");
+    setCanvas(canvas);
+    setCtx(ctx);
 
     // if we're on mobile, set canvas width and height to 256px
     if (window.innerWidth < 520) {
       canvas.width = 256;
       canvas.height = 256;
     }
-
-    // global variables with default values
-    let prevMouseX,
-      prevMouseY,
-      snapshot,
-      isDrawing = false,
-      selectedTool = "brush",
-      brushWidth = 5,
-      selectedColor = "#000";
-
-    // canvas.width = window.innerWidth;
+        // canvas.width = window.innerWidth;
     // canvas.height = window.innerHeight;
     ctx.fillStyle = "#FFFF";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+
+    // global variables with default values
+    setIsDrawing(false);
     // if the window size changes, resize the canvas
     // window.addEventListener("resize", () => {
     //   canvas.width = window.innerWidth;
     //   canvas.height = window.innerHeight;
     // });
 
-    function getOffsetPosition(evt, parent) {
-      var position = {
-        x: evt.targetTouches ? evt.targetTouches[0].pageX : evt.clientX,
-        y: evt.targetTouches ? evt.targetTouches[0].pageY : evt.clientY,
-      };
 
-      while (parent.offsetParent) {
-        position.x -= parent.offsetLeft - parent.scrollLeft;
-        position.y -= parent.offsetTop - parent.scrollTop;
-
-        parent = parent.offsetParent;
-      }
-
-      return position;
-    }
-
-    const drawRect = (offsetX, offsetY) => {
-      ctx.fillRect(
-        offsetX,
-        offsetY,
-        prevMouseX - offsetX,
-        prevMouseY - offsetY
-      );
-    };
-
-    const drawCircle = (offsetX, offsetY) => {
-      ctx.beginPath(); //creating a new path to draw circle
-      // getting radius for circle according to the mouse pointer
-      let radius = Math.sqrt(
-        Math.pow(prevMouseX - offsetX, 2) + Math.pow(prevMouseY - offsetY, 2)
-      );
-      ctx.arc(prevMouseX, prevMouseY, radius, 0, 2 * Math.PI); //creating circle according to the mouse pointer
-      ctx.stroke();
-      ctx.fill(); //if fillColor is checked fill circle else draw border circle
-    };
-
-    const drawTriangle = (offsetX, offsetY) => {
-      ctx.beginPath(); //creating new path to draw circle
-      ctx.moveTo(prevMouseX, prevMouseY); // moving triangle to the mouse pointer
-      ctx.lineTo(offsetX, offsetY); // creating first line according to the mouse pointer
-      ctx.lineTo(prevMouseX * 2 - offsetX, offsetY); // creating bottom line of the triangle
-      ctx.closePath(); // closing path of the triangle so the third line draw automatically
-      ctx.stroke();
-      ctx.fill(); //if fillColor is checked fill circle else draw border triangle
-    };
-
-    const startDraw = (e) => {
-      e.preventDefault();
-      const position = getOffsetPosition(e, e.target);
-      isDrawing = true;
-      prevMouseX = position.x; //passing current MouseX position as prevMouseX value
-      prevMouseY = position.y; //passing current MouseY position as prevMouseY value
-      ctx.beginPath(); //creating new path to draw
-      ctx.lineWidth = brushWidth; //passing brushSize as line width
-      snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height); //coping canvas data and passing as snapshot value.. this avoids dragging the image
-      ctx.strokeStyle = selectedColor; // passing selectedColor as stroke syle
-      ctx.fillStyle = selectedColor; // passing selectedColor as fill style
-    };
-
-    const drawing = (e) => {
-      if (!isDrawing) return; //if isDrawing is flase return form here
-      const position = getOffsetPosition(e, e.target);
-      ctx.putImageData(snapshot, 0, 0); //adding the copied canvas on to this canvas
-
-      if (selectedTool === "brush" || selectedTool === "eraser") {
-        ctx.strokeStyle = selectedTool === "eraser" ? "#fff" : selectedColor; //if selected tool is eraser then set strokeStyle to white to paint white color onto the existing canvas content else set the stroke color to selected color
-        ctx.lineTo(position.x, position.y); //creating line according to the mouse pointer
-        ctx.stroke(); //drawin/filling line with color
-      } else if (selectedTool === "rectangle") {
-        drawRect(position.x, position.y);
-      } else if (selectedTool === "circle") {
-        drawCircle(position.x, position.y);
-      } else {
-        drawTriangle(position.x, position.y);
-      }
-    };
+  const toolBtns = document.querySelectorAll(".tool");
 
     toolBtns.forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -133,25 +156,14 @@ function App() {
       });
     });
 
+    const sizeSlider = document.querySelector("#size-slider");
+
     sizeSlider.addEventListener(
       "change",
       () => (brushWidth = sizeSlider.value)
     );
 
-    colorBtns.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        // adding click event to all color button
-        // removing active class from the previous option and adding on current clicked option
-        document
-          .querySelector(".options .selected")
-          .classList.remove("selected");
-        btn.classList.add("selected");
-        // passing selected btn background as selectedColor value
-        selectedColor = window
-          .getComputedStyle(btn)
-          .getPropertyValue("background-color");
-      });
-    });
+    const colorPicker = document.querySelectorAll("#color-picker")[0];
 
     colorPicker.addEventListener("change", () => {
       colorPicker.parentElement.click();
@@ -160,12 +172,12 @@ function App() {
     canvas.addEventListener("touchstart", startDraw);
     canvas.addEventListener("touchmove", drawing);
     canvas.addEventListener("touchend", () => {
-      isDrawing = false;
+      setIsDrawing(false);
     });
     canvas.addEventListener("mousedown", startDraw);
     canvas.addEventListener("mousemove", drawing);
     canvas.addEventListener("mouseup", () => {
-      isDrawing = false;
+      setIsDrawing(false);
     });
   }, []);
 
@@ -339,7 +351,7 @@ function App() {
           <input
           type="color"
           id="color-picker"
-          value={color}
+          value={swatch}
           onChange={(e) => {
             setColor(e.target.value);
           }}

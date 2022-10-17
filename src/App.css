@@ -178,6 +178,20 @@ button {
   height: 512px;
 }
 
+.checkbox {
+  margin: 1em;
+  display: inline;
+}
+
+  .strength {
+    margin: 1em;
+    display: block;
+  }
+
+  .size {
+    display: block;
+    margin: 1em;
+  }
 /* for screens under 512 in width */
 @media screen and (max-width: 512px) {
   body {
@@ -204,18 +218,4 @@ button {
     width: 280px!important;
   }
   
-.checkbox {
-  margin: 1em;
-  display: inline;
-}
-
-  .strength {
-    margin: 1em;
-    display: block;
-  }
-
-  .size {
-    display: block;
-    margin: 1em;
-  }
 }
