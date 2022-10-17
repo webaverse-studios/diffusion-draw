@@ -1,4 +1,19 @@
 import axios from "axios";
+import fs from  'fs';
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+async function buffer(readable) {
+  const chunks = [];
+  for await (const chunk of readable) {
+    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+  }
+  return Buffer.concat(chunks);
+}
 
 const allowCors = fn => async (req, res) => {
   res.setHeader('Access-Control-Allow-Credentials', true)
@@ -17,17 +32,25 @@ const allowCors = fn => async (req, res) => {
   return await fn(req, res)
 }
 
-const handler = (req, res) => {
+const handler = async (req, res) => {
   // get the "s" param from the query string
   const { s } = req.query;
   console.log('received request');
-    // cors proxy
+
+  const buf = await buffer(req);
+  const rawBody = buf.toString('utf8');
+
+  // cors proxy
     // redirect POST request to https://stable-diffusion.webaverse.com/mod
     // then return response to original requester
-    axios.post("https://stable-diffusion.webaverse.com/mod?s=" + s, req.body)
+    axios.post("https://stable-diffusion.webaverse.com/mod", rawBody, {
+      params: { s },
+      headers: { "Access-Control-Allow-Origin": "*" },
+      responseType: "arraybuffer",
+    })
         .then((response) => {
-          console.log(response)
-            res.status(200).json(response.data);
+          console.log('sending response')
+            res.send(response.data)
         })
         .catch((error) => {
           console.log(error)
