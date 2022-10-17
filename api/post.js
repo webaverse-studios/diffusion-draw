@@ -18,16 +18,20 @@ const allowCors = fn => async (req, res) => {
 }
 
 const handler = (req, res) => {
+  // get the "s" param from the query string
+  const { s } = req.query;
+  console.log('received request');
     // cors proxy
     // redirect POST request to https://stable-diffusion.webaverse.com/mod
     // then return response to original requester
-    axios.post("https://stable-diffusion.webaverse.com/mod", req.body)
+    axios.post("https://stable-diffusion.webaverse.com/mod?s=" + s, req.body)
         .then((response) => {
+          console.log(response)
             res.status(200).json(response.data);
         })
         .catch((error) => {
+          console.log(error)
             res.status(500).json(error);
         });
 }
-
-module.exports = allowCors(handler)
+export default allowCors(handler)
