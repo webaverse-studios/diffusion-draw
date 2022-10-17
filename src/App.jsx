@@ -9,6 +9,8 @@ function App() {
   const [size, setSize] = useState(5);
   const [color, setColor] = useState("#4a9f7");
   const [prompt, setPrompt] = useState("");
+  const [tiling, setTiling] = useState(false);
+  const [strength, setStrength] = useState(50);
 
   useEffect(() => {
     const canvas = document.querySelector("canvas"),
@@ -27,16 +29,16 @@ function App() {
       brushWidth = 5,
       selectedColor = "#000";
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    // canvas.width = window.innerWidth;
+    // canvas.height = window.innerHeight;
     ctx.fillStyle = "#FFFF";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // if the window size changes, resize the canvas
-    window.addEventListener("resize", () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
+    // window.addEventListener("resize", () => {
+    //   canvas.width = window.innerWidth;
+    //   canvas.height = window.innerHeight;
+    // });
 
     function getOffsetPosition(evt, parent) {
       var position = {
@@ -128,7 +130,7 @@ function App() {
     sizeSlider.addEventListener(
       "change",
       () => (brushWidth = sizeSlider.value)
-    ); //passin slider value as brush Size
+    );
 
     colorBtns.forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -146,7 +148,6 @@ function App() {
     });
 
     colorPicker.addEventListener("change", () => {
-      colorPicker.parentElement.style.background = colorPicker.value;
       colorPicker.parentElement.click();
     });
 
@@ -271,7 +272,7 @@ function App() {
             STABLE_DIFFUSION_URL,
             sizeUpdatedDataURL,
             {
-              params: { s: prompt },
+              params: { s: prompt, tiling, strength: strength / 100 },
               headers: { "Access-Control-Allow-Origin": "*" },
               responseType: "arraybuffer",
             }
@@ -309,15 +310,41 @@ function App() {
 
   return (
     <div className="container">
+      <section className="drawing-board">
+        <canvas width={IMAGE_WIDTH/2} height={IMAGE_HEIGHT/2}></canvas>
+      </section>
       <section className="tools-board">
+      <div className="row buttons">
+      <input
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
+        className="prompt"
+        placeholder="handpainted portrait of an owl, greg rutkowski"
+      ></input>
+      <button
+        className="draw-button"
+        onClick={generateImage}
+        disabled={generating}
+      >
+        {generating ? "..." : "Draw"}
+      </button></div>
         <div className="row">
           <ul className="options">
+          <input
+          type="color"
+          id="color-picker"
+          value={color}
+          onChange={(e) => {
+            setColor(e.target.value);
+          }}
+        />
             <li className="option active tool" id="brush" key={0}>
-              Brush
+              <img src="brush.svg" alt="brush" />
             </li>
             <li className="option tool" id="eraser" key={1}>
-              Eraser
+            <img src="eraser.svg" alt="eraser" />
             </li>
+            {/*}
             <li className="option tool" id="rectangle" key={2}>
               Rectangle
             </li>
@@ -327,12 +354,14 @@ function App() {
             <li className="option tool" id="triangle" key={4}>
               Triangle
             </li>
+  */}
             <li className="option">
+            <label htmlFor="size-slider"><img src="size.svg" /></label>
               <input
                 type="range"
                 id="size-slider"
                 min="1"
-                max="30"
+                max="100"
                 value={size}
                 onChange={(e) => {
                   setSize(e.target.value);
@@ -341,65 +370,59 @@ function App() {
             </li>
           </ul>
         </div>
-        <div className="row colors">
-          <ul className="options">
-            <li className="option" key={0}></li>
-            <li className="option selected" key={1}></li>
-            <li className="option" key={2}></li>
-            <li className="option" key={3}></li>
-            <li className="option" key={4}>
-              <input
-                type="color"
-                id="color-picker"
-                value={color}
-                onChange={(e) => {
-                  setColor(e.target.value);
-                }}
-              />
-            </li>
-          </ul>
+
+        <div className="row">
+                {/* checkbox for tiling */}
+                <div className="checkbox">
+                  <input
+                    type="checkbox"
+                    id="tiling"
+                    checked={tiling}
+                    onChange={(e) => {
+                      setTiling(e.target.checked);
+                    }}
+                  />
+                  <label htmlFor="tiling">Tiling</label>
+                </div>
+
+                {/* slider for strength */}
+                <label htmlFor="strength-slider"><img src="blend.png" width="32px" height="32px" /></label>
+                <input
+                  type="range"
+                  id="strength-slider"
+                  min="0"
+                  max="100"
+                  value={strength}
+                  onChange={(e) => {
+                    setStrength(e.target.value);
+                  }}
+                />
         </div>
 
-        <div className="row buttons">
-          <label>Prompt</label>
-          <input
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-          ></input>
-          <br />
-          <br />
+
+          <div className="row buttons">
           <button
-            className="clear-canvas"
+            className="button"
             onClick={clearCanvas}
             disabled={generating}
           >
-            Clear Canvas
+            <img src="clear.svg" alt="clear" />
           </button>
           <button
-            className="save-img"
+            className="button"
             onClick={saveImage}
             disabled={generating}
           >
-            Save Image
+          <img src="download.svg" alt="clear" />
           </button>
           <button
-            className="save-img"
+            className="button"
             onClick={uploadImage}
             disabled={generating}
           >
-            Upload Image
-          </button>
-          <button
-            className="clear-canvas"
-            onClick={generateImage}
-            disabled={generating}
-          >
-            {generating ? "Generating Image" : "Generate Image"}
+          <img src="upload.svg" alt="clear" />
           </button>
         </div>
-      </section>
-      <section className="drawing-board">
-        <canvas width={IMAGE_WIDTH} height={IMAGE_HEIGHT}></canvas>
       </section>
     </div>
   );

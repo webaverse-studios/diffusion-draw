@@ -141,13 +141,13 @@ section {
     cursor: pointer;
 }
 
-.buttons .clear-canvas {
+.button {
     color: black;
     border: 1px solid black;
     transition: all 0.3s ease;
 }
 
-.clear-canvas:hover{
+.button:hover{
     color: #fff;
     background: grey;
 }

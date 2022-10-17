@@ -14,7 +14,6 @@ body {
 }
 
 .container {
-  display: flex;
   width: 100%;
   height:100%;
 }
@@ -24,9 +23,7 @@ section {
 } 
 
 .tools-board {
-  width: 200px;
   padding: 15px 22px 0;
-  margin-right: 10px;
   /* margin-left: -100px; */
 }
 
@@ -37,13 +34,16 @@ section {
 .row .options {
   list-style: none;
   margin: 10px 0 0 5px;
+  text-align: center;
+  min-width: 200px;
 }
 
 .row .options .option {
-  display: flex;
+  display: inline;
   cursor: pointer;
   align-items: center;
-  margin-bottom: 10px;
+  max-width: 400px;
+  margin: 10px;
 }
 
 .option :where(span, label) {
@@ -56,9 +56,7 @@ section {
 }
 
 .option #size-slider {
-  width: 100%;
-  height: 5px;
-  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .colors .options{
@@ -118,26 +116,48 @@ section {
   cursor: pointer;
 }
 
-.buttons button {
-  width: 100%;
-  color: #fff;
-  border: none;
-  outline: none;
-  padding: 11px 0;
-  font-size: 0.9rem;
-  margin-bottom: 13px;
-  background: none;
-  border-radius: 5px;
-  cursor: pointer;
+.tool img {
+  opacity: 50%;
 }
 
-.buttons .clear-canvas {
+.tool.active img {
+  opacity: 100%;
+}
+
+.buttons {
+  width: 100%;
+  text-align: right;
+}
+
+button {
+  border: none;
+  outline: none;
+  padding: 0;
+  margin-bottom: 0;
+  background: none;
+  border-radius: 0;
+  margin: 10px;
+}
+
+.button {
+  color: black;
+  transition: all 0.3s ease;
+  display: inline;
+}
+
+.draw-button {
   color: black;
   border: 1px solid black;
   transition: all 0.3s ease;
+  padding: .25em;
 }
 
-.clear-canvas:hover{
+.prompt {
+  width: 400px;
+  padding: .25em;
+}
+
+.button:hover{
   color: #fff;
   background: grey;
 }
@@ -148,10 +168,12 @@ section {
 }
 
 .drawing-board {
-  flex: 1;
+  width: 512px;
+  height: 512px;
+  margin: auto;
 }
 
 .drawing-board canvas {
-  width: 100%;
-  height: 100%;
+  width: 512px;
+  height: 512px;
 }
