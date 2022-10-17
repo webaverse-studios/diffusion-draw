@@ -20,6 +20,12 @@ function App() {
       colorPicker = document.querySelectorAll("#color-picker")[0],
       ctx = canvas.getContext("2d");
 
+    // if we're on mobile, set canvas width and height to 256px
+    if (window.innerWidth < 520) {
+      canvas.width = 256;
+      canvas.height = 256;
+    }
+
     // global variables with default values
     let prevMouseX,
       prevMouseY,
@@ -355,6 +361,7 @@ function App() {
               Triangle
             </li>
   */}
+  <div className="size">
             <li className="option">
             <label htmlFor="size-slider"><img src="size.svg" /></label>
               <input
@@ -368,6 +375,7 @@ function App() {
                 }}
               />
             </li>
+            </div>
           </ul>
         </div>
 
@@ -384,7 +392,7 @@ function App() {
                   />
                   <label htmlFor="tiling">Tiling</label>
                 </div>
-
+                <div className="strength">
                 {/* slider for strength */}
                 <label htmlFor="strength-slider"><img src="blend.png" width="32px" height="32px" /></label>
                 <input
@@ -397,6 +405,7 @@ function App() {
                     setStrength(e.target.value);
                   }}
                 />
+                </div>
         </div>
 
 

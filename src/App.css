@@ -177,3 +177,45 @@ button {
   width: 512px;
   height: 512px;
 }
+
+/* for screens under 512 in width */
+@media screen and (max-width: 512px) {
+  body {
+    background: #ccc;
+  }
+  .drawing-board {
+    width: 256px!important;
+    height: 256px!important;
+  }
+
+  .tools-board {
+    background-color: none;
+    background: none;
+    padding: 1em;
+    margin: 0;
+  }
+
+  .drawing-board canvas {
+    width: 256px;
+    height: 256px;
+  }
+
+  .prompt {
+    width: 280px!important;
+  }
+  
+.checkbox {
+  margin: 1em;
+  display: inline;
+}
+
+  .strength {
+    margin: 1em;
+    display: block;
+  }
+
+  .size {
+    display: block;
+    margin: 1em;
+  }
+}
