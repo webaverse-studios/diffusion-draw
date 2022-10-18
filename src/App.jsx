@@ -41,12 +41,11 @@ function App() {
       y: evt.targetTouches ? evt.targetTouches[0].pageY : evt.clientY,
     };
 
-    while (parent.offsetParent) {
-      position.x -= parent.offsetLeft - parent.scrollLeft;
-      position.y -= parent.offsetTop - parent.scrollTop;
-
-      parent = parent.offsetParent;
-    }
+    // while (parent.offsetParent) {
+      position.x -= parent.offsetLeft - document.querySelector("html").scrollLeft;
+      position.y -= parent.offsetTop - document.querySelector("html").scrollTop;
+    //   parent = parent.offsetParent;
+    // }
 
     return position;
   }
@@ -329,7 +328,7 @@ function App() {
   return (
     <div className="container">
       <section className="drawing-board">
-        <canvas width={IMAGE_WIDTH/2} height={IMAGE_HEIGHT/2}></canvas>
+        <canvas width={IMAGE_WIDTH} height={IMAGE_HEIGHT}></canvas>
       </section>
       <section className="tools-board">
       <div className="row buttons">
@@ -373,7 +372,7 @@ function App() {
               Triangle
             </li>
   */}
-  <div className="size">
+        <div className="size">
             <li className="option">
             <label htmlFor="size-slider"><img src="size.svg" /></label>
               <input
@@ -392,57 +391,55 @@ function App() {
         </div>
 
         <div className="row">
-                {/* checkbox for tiling */}
-                <div className="checkbox">
-                  <input
-                    type="checkbox"
-                    id="tiling"
-                    checked={tiling}
-                    onChange={(e) => {
-                      setTiling(e.target.checked);
-                    }}
-                  />
-                  <label htmlFor="tiling">Tiling</label>
-                </div>
-                <div className="strength">
+            {/* checkbox for tiling */}
+            <div className="checkbox">
+                <input
+                type="checkbox"
+                id="tiling"
+                checked={tiling}
+                onChange={(e) => {
+                    setTiling(e.target.checked);
+                }}
+                />
+                <label htmlFor="tiling">Tiling</label>
+            </div>
+            <div className="strength">
                 {/* slider for strength */}
                 <label htmlFor="strength-slider"><img src="blend.png" width="32px" height="32px" /></label>
                 <input
-                  type="range"
-                  id="strength-slider"
-                  min="0"
-                  max="100"
-                  value={strength}
-                  onChange={(e) => {
+                    type="range"
+                    id="strength-slider"
+                    min="0"
+                    max="100"
+                    value={strength}
+                    onChange={(e) => {
                     setStrength(e.target.value);
-                  }}
+                    }}
                 />
-                </div>
+            </div>
         </div>
-
-
           <div className="row buttons">
-          <button
-            className="button"
-            onClick={clearCanvas}
-            disabled={generating}
-          >
-            <img src="clear.svg" alt="clear" />
-          </button>
-          <button
-            className="button"
-            onClick={saveImage}
-            disabled={generating}
-          >
-          <img src="download.svg" alt="clear" />
-          </button>
-          <button
-            className="button"
-            onClick={uploadImage}
-            disabled={generating}
-          >
-          <img src="upload.svg" alt="clear" />
-          </button>
+            <button
+                className="button"
+                onClick={clearCanvas}
+                disabled={generating}
+            >
+                <img src="clear.svg" alt="clear" />
+            </button>
+            <button
+                className="button"
+                onClick={saveImage}
+                disabled={generating}
+            >
+                <img src="download.svg" alt="clear" />
+            </button>
+            <button
+                className="button"
+                onClick={uploadImage}
+                disabled={generating}
+            >
+                <img src="upload.svg" alt="clear" />
+            </button>
         </div>
       </section>
     </div>

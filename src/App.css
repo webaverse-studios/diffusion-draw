@@ -168,14 +168,14 @@ button {
 }
 
 .drawing-board {
-  width: 512px;
-  height: 512px;
+  width: 1024px;
+  height: 1024px;
   margin: auto;
 }
 
 .drawing-board canvas {
-  width: 512px;
-  height: 512px;
+  width: 1024px;
+  height: 1024px;
 }
 
 .checkbox {
