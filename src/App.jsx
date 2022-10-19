@@ -9,6 +9,7 @@ prevMouseY,
 snapshot,
 selectedTool = "brush",
 brushWidth = 5, isDrawing, canvas, ctx, color = "#000000";
+let undo =[], redo= [];
 
 function setIsDrawing(value) {
   isDrawing = value;
@@ -29,6 +30,38 @@ function App() {
   const [tiling, setTiling] = useState(false);
   const [strength, setStrength] = useState(50);
   const [swatch, setSwatch] = useState(color);
+//   const [undoList, setUndoList] = useState([]);
+//   const [redoList, setRedoList] = useState([]);
+
+//  var history = {
+//     redo_list: [],
+//     undo_list: [],
+//     saveState: function(canvas, list, keep_redo) {
+//       keep_redo = keep_redo || false;
+//       if(!keep_redo) {
+//         this.redo_list = [];
+//       }
+      
+//       (list || this.undo_list).push(canvas.toDataURL());   
+//     },
+//     undo: function(canvas, ctx) {
+//       this.restoreState(canvas, ctx, this.undo_list, this.redo_list);
+//     },
+//     redo: function(canvas, ctx) {
+//       this.restoreState(canvas, ctx, this.redo_list, this.undo_list);
+//     },
+//     restoreState: function(canvas, ctx,  pop, push) {
+//       if(pop.length) {
+//         this.saveState(canvas, push, true);
+//         var restore_state = pop.pop();
+//         var img = new Element('img', {'src':restore_state});
+//         img.onload = function() {
+//           ctx.clearRect(0, 0, 600, 400);
+//           ctx.drawImage(img, 0, 0, 600, 400, 0, 0, 600, 400);  
+//         }
+//       }
+//     }
+//   }
 
   function setColor(value) {
     color = value;
@@ -93,6 +126,9 @@ function App() {
     ctx.beginPath(); //creating new path to draw
     ctx.lineWidth = brushWidth; //passing brushSize as line width
     snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height); //coping canvas data and passing as snapshot value.. this avoids dragging the image
+    undo.push(snapshot);
+    redo = [];
+    console.log("undo", undo)
     ctx.strokeStyle = color; // passing selectedColor as stroke syle
     ctx.fillStyle = color; // passing selectedColor as fill style
   };
@@ -326,26 +362,55 @@ function App() {
     }
   };
 
+  const unDo = () => {
+    snapshot = undo.pop();
+    console.log("sna", snapshot)
+    redo.push(snapshot);
+    ctx.putImageData(snapshot, 0, 0);
+  };
+
+  const reDo = () => {
+    if(redo.length)
+    snapshot = redo.pop();
+    undo.push(snapshot);
+    ctx.putImageData(snapshot, 0, 0);
+  };
+
   return (
     <div className="container">
       <section className="drawing-board">
         <canvas width={IMAGE_WIDTH} height={IMAGE_HEIGHT}></canvas>
       </section>
       <section className="tools-board">
-      <div className="row buttons">
-      <input
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        className="prompt"
-        placeholder="handpainted portrait of an owl, greg rutkowski"
-      ></input>
-      <button
-        className="draw-button"
-        onClick={generateImage}
-        disabled={generating}
-      >
-        {generating ? "..." : "Draw"}
-      </button></div>
+        <div className="buttons draw-row">
+            <button
+                className="draw-button"
+                onClick={unDo}
+            >
+                undo
+            </button>
+            <button
+                className="draw-button"
+                onClick={reDo}
+            >
+                redo
+            </button>
+        </div>
+        <div className="row buttons draw-row">
+            <input
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                className="prompt"
+                placeholder="handpainted portrait of an owl, greg rutkowski"
+            ></input>
+            <button
+                className="draw-button"
+                onClick={generateImage}
+                disabled={generating}
+            >
+                {generating ? "..." : "Draw"}
+            </button>
+        </div>
         <div className="row">
           <ul className="options">
           <input
