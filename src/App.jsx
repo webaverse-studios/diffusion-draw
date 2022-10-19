@@ -117,7 +117,6 @@ function App() {
   };
 
   useEffect(() => {
-
     const canvas = document.querySelector("canvas");
     const ctx = canvas.getContext("2d");
     setCanvas(canvas);
@@ -133,7 +132,6 @@ function App() {
     ctx.fillStyle = "#FFFF";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-
     // global variables with default values
     setIsDrawing(false);
     // if the window size changes, resize the canvas
@@ -143,7 +141,7 @@ function App() {
     // });
 
 
-  const toolBtns = document.querySelectorAll(".tool");
+    const toolBtns = document.querySelectorAll(".tool");
 
     toolBtns.forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -176,6 +174,9 @@ function App() {
     canvas.addEventListener("mousedown", startDraw);
     canvas.addEventListener("mousemove", drawing);
     canvas.addEventListener("mouseup", () => {
+      setIsDrawing(false);
+    });
+    canvas.addEventListener("mouseout", () => {
       setIsDrawing(false);
     });
   }, []);
