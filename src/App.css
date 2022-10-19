@@ -154,6 +154,9 @@ button {
   transition: all 0.3s ease;
   padding: .25em;
 }
+.draw-button:disabled {
+    background: #dddddd;
+}
 
 .prompt {
   width: 400px;

@@ -30,8 +30,8 @@ function App() {
   const [tiling, setTiling] = useState(false);
   const [strength, setStrength] = useState(50);
   const [swatch, setSwatch] = useState(color);
-//   const [undoList, setUndoList] = useState([]);
-//   const [redoList, setRedoList] = useState([]);
+  const [undoEnable, setUndoEnable] = useState(false);
+  const [redoEnable, setRedoEnable] = useState(false);
 
 //  var history = {
 //     redo_list: [],
@@ -126,9 +126,11 @@ function App() {
     ctx.beginPath(); //creating new path to draw
     ctx.lineWidth = brushWidth; //passing brushSize as line width
     snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height); //coping canvas data and passing as snapshot value.. this avoids dragging the image
-    undo.push(snapshot);
-    redo = [];
-    console.log("undo", undo)
+    // undo.push(snapshot);
+    // setUndoEnable(true);
+    // setRedoEnable(false);
+    // redo = [];
+    // console.log("undo", undo)
     ctx.strokeStyle = color; // passing selectedColor as stroke syle
     ctx.fillStyle = color; // passing selectedColor as fill style
   };
@@ -151,6 +153,16 @@ function App() {
       drawTriangle(position.x, position.y);
     }
   };
+
+  const endDrawing = () => {
+    setIsDrawing(false);
+    snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height); //coping canvas data and passing as snapshot value.. this avoids dragging the image
+    undo.push(snapshot);
+    setUndoEnable(true);
+    setRedoEnable(false);
+    redo = [];
+    console.log("undo", undo)
+  }
 
   useEffect(() => {
     const canvas = document.querySelector("canvas");
@@ -204,18 +216,18 @@ function App() {
 
     canvas.addEventListener("touchstart", startDraw);
     canvas.addEventListener("touchmove", drawing);
-    canvas.addEventListener("touchend", () => {
-      setIsDrawing(false);
-    });
+    canvas.addEventListener("touchend", endDrawing);
     canvas.addEventListener("mousedown", startDraw);
     canvas.addEventListener("mousemove", drawing);
-    canvas.addEventListener("mouseup", () => {
-      setIsDrawing(false);
-    });
+    canvas.addEventListener("mouseup", endDrawing);
     canvas.addEventListener("mouseout", () => {
-      setIsDrawing(false);
+        setIsDrawing(false);
     });
   }, []);
+
+  useEffect(() => {
+    console.log("length", undo, redo)
+  })
 
   const clearCanvas = () => {
     if (generating) {
@@ -299,6 +311,8 @@ function App() {
             canvas.width,
             canvas.height
           );
+          undo = [];
+          undo.push(ctx.getImageData(0, 0, canvas.width, canvas.height));  
         };
         img.src = reader.result;
       };
@@ -351,6 +365,8 @@ function App() {
               canvas.width,
               canvas.height
             );
+            undo = [];
+            undo.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
             setGenerating(false);
           };
           img.src = imageUrl;
@@ -364,16 +380,23 @@ function App() {
 
   const unDo = () => {
     snapshot = undo.pop();
-    console.log("sna", snapshot)
     redo.push(snapshot);
-    ctx.putImageData(snapshot, 0, 0);
+    if(undo.length > 0) ctx.putImageData([...undo].pop(), 0, 0);
+    else clearCanvas();
+    setRedoEnable(true)
+    setUndoEnable(undo.length !== 0)
   };
 
   const reDo = () => {
-    if(redo.length)
     snapshot = redo.pop();
+    console.log("redo", snapshot)
     undo.push(snapshot);
     ctx.putImageData(snapshot, 0, 0);
+    setRedoEnable(redo.length !== 0)
+  };
+
+  const restoreDraw = () => {
+    ctx.putImageData([...undo].pop(), 0, 0)
   };
 
   return (
@@ -386,14 +409,30 @@ function App() {
             <button
                 className="draw-button"
                 onClick={unDo}
+                disabled={!undoEnable}
             >
                 undo
             </button>
             <button
                 className="draw-button"
                 onClick={reDo}
+                disabled={!redoEnable}
             >
                 redo
+            </button>
+            <button
+                className="draw-button"
+                onClick={clearCanvas}
+                // disabled={!redoEnable}
+            >
+                clear
+            </button>
+            <button
+                className="draw-button"
+                onClick={restoreDraw}
+                // disabled={!redoEnable}
+            >
+                restore
             </button>
         </div>
         <div className="row buttons draw-row">
