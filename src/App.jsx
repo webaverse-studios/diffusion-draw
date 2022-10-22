@@ -5,11 +5,16 @@ import { IMAGE_HEIGHT, IMAGE_WIDTH, STABLE_DIFFUSION_URL } from "./constants";
 import { Buffer } from "buffer";
 
 let prevMouseX,
-prevMouseY,
-snapshot,
-selectedTool = "brush",
-brushWidth = 5, isDrawing, canvas, ctx, color = "#000000";
-let undo =[], redo= [];
+  prevMouseY,
+  snapshot,
+  selectedTool = "brush",
+  brushWidth = 5,
+  isDrawing,
+  canvas,
+  ctx,
+  color = "#000000";
+let undo = [],
+  redo = [];
 
 function setIsDrawing(value) {
   isDrawing = value;
@@ -32,40 +37,43 @@ function App() {
   const [swatch, setSwatch] = useState(color);
   const [undoEnable, setUndoEnable] = useState(false);
   const [redoEnable, setRedoEnable] = useState(false);
+  const [maskOn, setMaskOn] = useState(false);
+  const [normalImage, setNormalImage] = useState(null);
+  const [maskImage, setMaskImage] = useState(null);
 
-//  var history = {
-//     redo_list: [],
-//     undo_list: [],
-//     saveState: function(canvas, list, keep_redo) {
-//       keep_redo = keep_redo || false;
-//       if(!keep_redo) {
-//         this.redo_list = [];
-//       }
-      
-//       (list || this.undo_list).push(canvas.toDataURL());   
-//     },
-//     undo: function(canvas, ctx) {
-//       this.restoreState(canvas, ctx, this.undo_list, this.redo_list);
-//     },
-//     redo: function(canvas, ctx) {
-//       this.restoreState(canvas, ctx, this.redo_list, this.undo_list);
-//     },
-//     restoreState: function(canvas, ctx,  pop, push) {
-//       if(pop.length) {
-//         this.saveState(canvas, push, true);
-//         var restore_state = pop.pop();
-//         var img = new Element('img', {'src':restore_state});
-//         img.onload = function() {
-//           ctx.clearRect(0, 0, 600, 400);
-//           ctx.drawImage(img, 0, 0, 600, 400, 0, 0, 600, 400);  
-//         }
-//       }
-//     }
-//   }
+  //  var history = {
+  //     redo_list: [],
+  //     undo_list: [],
+  //     saveState: function(canvas, list, keep_redo) {
+  //       keep_redo = keep_redo || false;
+  //       if(!keep_redo) {
+  //         this.redo_list = [];
+  //       }
+
+  //       (list || this.undo_list).push(canvas.toDataURL());
+  //     },
+  //     undo: function(canvas, ctx) {
+  //       this.restoreState(canvas, ctx, this.undo_list, this.redo_list);
+  //     },
+  //     redo: function(canvas, ctx) {
+  //       this.restoreState(canvas, ctx, this.redo_list, this.undo_list);
+  //     },
+  //     restoreState: function(canvas, ctx,  pop, push) {
+  //       if(pop.length) {
+  //         this.saveState(canvas, push, true);
+  //         var restore_state = pop.pop();
+  //         var img = new Element('img', {'src':restore_state});
+  //         img.onload = function() {
+  //           ctx.clearRect(0, 0, 600, 400);
+  //           ctx.drawImage(img, 0, 0, 600, 400, 0, 0, 600, 400);
+  //         }
+  //       }
+  //     }
+  //   }
 
   function setColor(value) {
     color = value;
-    setSwatch(value)
+    setSwatch(value);
   }
 
   function getOffsetPosition(evt, parent) {
@@ -75,8 +83,8 @@ function App() {
     };
 
     // while (parent.offsetParent) {
-      position.x -= parent.offsetLeft - document.querySelector("html").scrollLeft;
-      position.y -= parent.offsetTop - document.querySelector("html").scrollTop;
+    position.x -= parent.offsetLeft - document.querySelector("html").scrollLeft;
+    position.y -= parent.offsetTop - document.querySelector("html").scrollTop;
     //   parent = parent.offsetParent;
     // }
 
@@ -84,12 +92,7 @@ function App() {
   }
 
   const drawRect = (offsetX, offsetY) => {
-    ctx.fillRect(
-      offsetX,
-      offsetY,
-      prevMouseX - offsetX,
-      prevMouseY - offsetY
-    );
+    ctx.fillRect(offsetX, offsetY, prevMouseX - offsetX, prevMouseY - offsetY);
   };
 
   const drawCircle = (offsetX, offsetY) => {
@@ -118,7 +121,7 @@ function App() {
     const canvas = document.querySelector("canvas");
     const ctx = canvas.getContext("2d");
     // get canvas
-    
+
     const position = getOffsetPosition(e, e.target);
     setIsDrawing(true);
     prevMouseX = position.x; //passing current MouseX position as prevMouseX value
@@ -136,8 +139,9 @@ function App() {
   };
 
   const drawing = (e) => {
-    if (!isDrawing) return console.log('not drawing'); //if isDrawing is flase return form here
-    else console.log('drawing')
+    if (!isDrawing) return console.log("not drawing");
+    //if isDrawing is flase return form here
+    else console.log("drawing");
     const position = getOffsetPosition(e, e.target);
     ctx.putImageData(snapshot, 0, 0); //adding the copied canvas on to this canvas
 
@@ -161,8 +165,8 @@ function App() {
     setUndoEnable(true);
     setRedoEnable(false);
     redo = [];
-    console.log("undo", undo)
-  }
+    console.log("undo", undo);
+  };
 
   useEffect(() => {
     const canvas = document.querySelector("canvas");
@@ -175,7 +179,7 @@ function App() {
       canvas.width = 256;
       canvas.height = 256;
     }
-        // canvas.width = window.innerWidth;
+    // canvas.width = window.innerWidth;
     // canvas.height = window.innerHeight;
     ctx.fillStyle = "#FFFF";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -187,7 +191,6 @@ function App() {
     //   canvas.width = window.innerWidth;
     //   canvas.height = window.innerHeight;
     // });
-
 
     const toolBtns = document.querySelectorAll(".tool");
 
@@ -221,13 +224,13 @@ function App() {
     canvas.addEventListener("mousemove", drawing);
     canvas.addEventListener("mouseup", endDrawing);
     canvas.addEventListener("mouseout", () => {
-        setIsDrawing(false);
+      setIsDrawing(false);
     });
   }, []);
 
   useEffect(() => {
-    console.log("length", undo, redo)
-  })
+    console.log("length", undo, redo);
+  });
 
   const clearCanvas = () => {
     if (generating) {
@@ -255,9 +258,12 @@ function App() {
       canvas.width = width;
       canvas.height = height;
 
-      canvas.getContext("2d").fillStyle = "#FFFF";
-      canvas.getContext("2d").fillRect(0, 0, canvas.width, canvas.height);
+      if (!maskOn) {
+        canvas.getContext("2d").fillStyle = "#FFFF";
+        canvas.getContext("2d").fillRect(0, 0, canvas.width, canvas.height);
+      }
       canvas.getContext("2d").drawImage(sourceImage, 0, 0, width, height);
+
       callback(canvas.toDataURL());
     };
 
@@ -289,6 +295,10 @@ function App() {
       return;
     }
 
+    if (!maskOn) {
+      setMaskPressed();
+    }
+
     const canvas = document.querySelector("canvas");
     const ctx = canvas.getContext("2d");
 
@@ -312,7 +322,7 @@ function App() {
             canvas.height
           );
           undo = [];
-          undo.push(ctx.getImageData(0, 0, canvas.width, canvas.height));  
+          undo.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
         };
         img.src = reader.result;
       };
@@ -381,22 +391,52 @@ function App() {
   const unDo = () => {
     snapshot = undo.pop();
     redo.push(snapshot);
-    if(undo.length > 0) ctx.putImageData([...undo].pop(), 0, 0);
+    if (undo.length > 0) ctx.putImageData([...undo].pop(), 0, 0);
     else clearCanvas();
-    setRedoEnable(true)
-    setUndoEnable(undo.length !== 0)
+    setRedoEnable(true);
+    setUndoEnable(undo.length !== 0);
   };
 
   const reDo = () => {
     snapshot = redo.pop();
-    console.log("redo", snapshot)
+    console.log("redo", snapshot);
     undo.push(snapshot);
     ctx.putImageData(snapshot, 0, 0);
-    setRedoEnable(redo.length !== 0)
+    setRedoEnable(redo.length !== 0);
   };
 
   const restoreDraw = () => {
-    ctx.putImageData([...undo].pop(), 0, 0)
+    ctx.putImageData([...undo].pop(), 0, 0);
+  };
+
+  const setMaskPressed = () => {
+    setMaskOn(!maskOn);
+    const canvas = document.querySelector("canvas");
+    const ctx = canvas.getContext("2d");
+
+    console.log(maskOn);
+    if (maskOn) {
+      let _mi = maskImage;
+      setNormalImage(ctx.getImageData(0, 0, canvas.width, canvas.height));
+      if (!maskImage) {
+        _mi = ctx.createImageData(canvas.width, canvas.height);
+        setMaskImage(_mi);
+      }
+      console.log("setting mask");
+      ctx.putImageData(_mi, 0, 0);
+    } else {
+      let _ni = normalImage;
+      setMaskImage(ctx.getImageData(0, 0, canvas.width, canvas.height));
+      if (!_ni) {
+        _ni = ctx.createImageData(canvas.width, canvas.height);
+        for (let i = 0; i < _ni.data.length; i += 4) {
+          _ni.data[i + 3] = 0;
+        }
+        setNormalImage(_ni);
+      }
+      console.log("setting normal");
+      ctx.putImageData(_ni, 0, 0);
+    }
   };
 
   return (
@@ -406,65 +446,60 @@ function App() {
       </section>
       <section className="tools-board">
         <div className="buttons draw-row">
-            <button
-                className="draw-button"
-                onClick={unDo}
-                disabled={!undoEnable}
-            >
-                undo
-            </button>
-            <button
-                className="draw-button"
-                onClick={reDo}
-                disabled={!redoEnable}
-            >
-                redo
-            </button>
-            <button
-                className="draw-button"
-                onClick={clearCanvas}
-                // disabled={!redoEnable}
-            >
-                clear
-            </button>
-            <button
-                className="draw-button"
-                onClick={restoreDraw}
-                // disabled={!redoEnable}
-            >
-                restore
-            </button>
+          <button className="draw-button" onClick={unDo} disabled={!undoEnable}>
+            undo
+          </button>
+          <button className="draw-button" onClick={reDo} disabled={!redoEnable}>
+            redo
+          </button>
+          <button
+            className="draw-button"
+            onClick={clearCanvas}
+            // disabled={!redoEnable}
+          >
+            clear
+          </button>
+          <button
+            className="draw-button"
+            onClick={restoreDraw}
+            // disabled={!redoEnable}
+          >
+            restore
+          </button>
+          <button className="draw-button" id="mask" onClick={setMaskPressed}>
+            {maskOn ? "mask" : "normal"}
+          </button>
         </div>
         <div className="row buttons draw-row">
-            <input
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                className="prompt"
-                placeholder="handpainted portrait of an owl, greg rutkowski"
-            ></input>
-            <button
-                className="draw-button"
-                onClick={generateImage}
-                disabled={generating}
-            >
-                {generating ? "..." : "Draw"}
-            </button>
+          <input
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            className="prompt"
+            placeholder="handpainted portrait of an owl, greg rutkowski"
+          ></input>
+          <button
+            className="draw-button"
+            onClick={generateImage}
+            disabled={generating}
+          >
+            {generating ? "..." : "Draw"}
+          </button>
         </div>
         <div className="row">
           <ul className="options">
-          <input
-          type="color"
-          id="color-picker"
-          value={swatch}
-          onChange={(e) => {
-            setColor(e.target.value);
-          }}
-        />
+            <input
+              type="color"
+              id="color-picker"
+              value={swatch}
+              onChange={(e) => {
+                setColor(e.target.value);
+              }}
+            />
             <li className="option active tool" id="brush" key={0}>
               <img src="brush.svg" alt="brush" />
             </li>
             <li className="option tool" id="eraser" key={1}>
-            <img src="eraser.svg" alt="eraser" />
+              <img src="eraser.svg" alt="eraser" />
             </li>
             {/*}
             <li className="option tool" id="rectangle" key={2}>
@@ -477,74 +512,74 @@ function App() {
               Triangle
             </li>
   */}
-        <div className="size">
-            <li className="option">
-            <label htmlFor="size-slider"><img src="size.svg" /></label>
-              <input
-                type="range"
-                id="size-slider"
-                min="1"
-                max="100"
-                value={size}
-                onChange={(e) => {
-                  setSize(e.target.value);
-                }}
-              />
-            </li>
+            <div className="size">
+              <li className="option">
+                <label htmlFor="size-slider">
+                  <img src="size.svg" />
+                </label>
+                <input
+                  type="range"
+                  id="size-slider"
+                  min="1"
+                  max="100"
+                  value={size}
+                  onChange={(e) => {
+                    setSize(e.target.value);
+                  }}
+                />
+              </li>
             </div>
           </ul>
         </div>
 
         <div className="row">
-            {/* checkbox for tiling */}
-            <div className="checkbox">
-                <input
-                type="checkbox"
-                id="tiling"
-                checked={tiling}
-                onChange={(e) => {
-                    setTiling(e.target.checked);
-                }}
-                />
-                <label htmlFor="tiling">Tiling</label>
-            </div>
-            <div className="strength">
-                {/* slider for strength */}
-                <label htmlFor="strength-slider"><img src="blend.png" width="32px" height="32px" /></label>
-                <input
-                    type="range"
-                    id="strength-slider"
-                    min="0"
-                    max="100"
-                    value={strength}
-                    onChange={(e) => {
-                    setStrength(e.target.value);
-                    }}
-                />
-            </div>
+          {/* checkbox for tiling */}
+          <div className="checkbox">
+            <input
+              type="checkbox"
+              id="tiling"
+              checked={tiling}
+              onChange={(e) => {
+                setTiling(e.target.checked);
+              }}
+            />
+            <label htmlFor="tiling">Tiling</label>
+          </div>
+          <div className="strength">
+            {/* slider for strength */}
+            <label htmlFor="strength-slider">
+              <img src="blend.png" width="32px" height="32px" />
+            </label>
+            <input
+              type="range"
+              id="strength-slider"
+              min="0"
+              max="100"
+              value={strength}
+              onChange={(e) => {
+                setStrength(e.target.value);
+              }}
+            />
+          </div>
         </div>
-          <div className="row buttons">
-            <button
-                className="button"
-                onClick={clearCanvas}
-                disabled={generating}
-            >
-                <img src="clear.svg" alt="clear" />
-            </button>
-            <button
-                className="button"
-                onClick={saveImage}
-                disabled={generating}
-            >
-                <img src="download.svg" alt="clear" />
-            </button>
-            <button
-                className="button"
-                onClick={uploadImage}
-                disabled={generating}
-            >
-                <img src="upload.svg" alt="clear" />
-            </button>
+        <div className="row buttons">
+          <button
+            className="button"
+            onClick={clearCanvas}
+            disabled={generating}
+          >
+            <img src="clear.svg" alt="clear" />
+          </button>
+          <button className="button" onClick={saveImage} disabled={generating}>
+            <img src="download.svg" alt="clear" />
+          </button>
+          <button
+            className="button"
+            onClick={uploadImage}
+            disabled={generating}
+          >
+            <img src="upload.svg" alt="clear" />
+          </button>
         </div>
       </section>
     </div>
