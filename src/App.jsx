@@ -387,10 +387,14 @@ function App() {
       }
 
       setGenerating(true);
-      let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      let imgData = null;
       try {
         imgData = undo[undo.length - 2];
       } catch (e) {}
+      if (!imgData) {
+        imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      }
+      console.log("imgData:", imgData)
       const maskData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       for (let i = 0; i < maskData.data.length; i += 4) {
         if (
