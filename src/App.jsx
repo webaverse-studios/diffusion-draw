@@ -394,7 +394,6 @@ function App() {
       if (!imgData) {
         imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       }
-      console.log("imgData:", imgData)
       const maskData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       for (let i = 0; i < maskData.data.length; i += 4) {
         if (
@@ -428,14 +427,12 @@ function App() {
           responseType: "arraybuffer",
         }
       );
-      console.log("got response:", response);
 
       const bytes = response.data;
       const arrayBufferView = new Uint8Array(bytes);
       const blob = new Blob([arrayBufferView], { type: "image/png" });
       const urlCreator = window.URL || window.webkitURL;
       const imageUrl = urlCreator.createObjectURL(blob);
-      console.log("img url:", imageUrl);
 
       const img = new Image();
       img.onload = () => {
@@ -475,7 +472,6 @@ function App() {
 
   const reDo = () => {
     snapshot = redo.pop();
-    console.log("redo", snapshot);
     undo.push(snapshot);
     ctx.putImageData(snapshot, 0, 0);
     setRedoEnable(redo.length !== 0);
