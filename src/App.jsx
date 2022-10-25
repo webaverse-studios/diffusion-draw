@@ -1,8 +1,12 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import "./App.css";
-import { IMAGE_HEIGHT, IMAGE_WIDTH, STABLE_DIFFUSION_URL } from "./constants";
-import { Buffer } from "buffer";
+import {
+  IMAGE_HEIGHT,
+  IMAGE_WIDTH,
+  IN_PAINT_URL,
+  STABLE_DIFFUSION_URL,
+} from "./constants";
 
 let prevMouseX,
   prevMouseY,
@@ -37,9 +41,6 @@ function App() {
   const [swatch, setSwatch] = useState(color);
   const [undoEnable, setUndoEnable] = useState(false);
   const [redoEnable, setRedoEnable] = useState(false);
-  const [maskOn, setMaskOn] = useState(false);
-  const [normalImage, setNormalImage] = useState(null);
-  const [maskImage, setMaskImage] = useState(null);
 
   //  var history = {
   //     redo_list: [],
@@ -119,7 +120,7 @@ function App() {
   const startDraw = (e) => {
     e.preventDefault();
     const canvas = document.querySelector("canvas");
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { alpha: false });
     // get canvas
 
     const position = getOffsetPosition(e, e.target);
@@ -139,9 +140,8 @@ function App() {
   };
 
   const drawing = (e) => {
-    if (!isDrawing) return console.log("not drawing");
+    if (!isDrawing) return;
     //if isDrawing is flase return form here
-    else console.log("drawing");
     const position = getOffsetPosition(e, e.target);
     ctx.putImageData(snapshot, 0, 0); //adding the copied canvas on to this canvas
 
@@ -165,7 +165,6 @@ function App() {
     setUndoEnable(true);
     setRedoEnable(false);
     redo = [];
-    console.log("undo", undo);
   };
 
   useEffect(() => {
@@ -229,7 +228,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    console.log("length", undo, redo);
+    //console.log("length", undo, redo);
   });
 
   const clearCanvas = () => {
@@ -258,10 +257,8 @@ function App() {
       canvas.width = width;
       canvas.height = height;
 
-      if (!maskOn) {
-        canvas.getContext("2d").fillStyle = "#FFFF";
-        canvas.getContext("2d").fillRect(0, 0, canvas.width, canvas.height);
-      }
+      canvas.getContext("2d").fillStyle = "#FFFF";
+      canvas.getContext("2d").fillRect(0, 0, canvas.width, canvas.height);
       canvas.getContext("2d").drawImage(sourceImage, 0, 0, width, height);
 
       callback(canvas.toDataURL());
@@ -293,10 +290,6 @@ function App() {
   const uploadImage = () => {
     if (generating) {
       return;
-    }
-
-    if (!maskOn) {
-      setMaskPressed();
     }
 
     const canvas = document.querySelector("canvas");
@@ -350,7 +343,7 @@ function App() {
             STABLE_DIFFUSION_URL,
             sizeUpdatedDataURL,
             {
-              params: { s: prompt, tiling, strength: strength / 100 },
+              params: { s: prompt },
               headers: { "Access-Control-Allow-Origin": "*" },
               responseType: "arraybuffer",
             }
@@ -387,6 +380,86 @@ function App() {
       setGenerating(false);
     }
   };
+  const generateImageWithInpaint = async () => {
+    try {
+      if (generating) {
+        return;
+      }
+
+      setGenerating(true);
+      const imgData = undo[undo.length - 2];
+      const maskData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < maskData.data.length; i += 4) {
+        if (
+          maskData.data[i] !== 255 ||
+          maskData.data[i + 1] !== 255 ||
+          maskData.data[i + 2] !== 255
+        ) {
+          maskData.data[i] = 0;
+          maskData.data[i + 1] = 0;
+          maskData.data[i + 2] = 0;
+        }
+      }
+
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = IMAGE_WIDTH;
+      tempCanvas.height = IMAGE_HEIGHT;
+
+      tempCanvas.getContext("2d").putImageData(imgData, 0, 0);
+
+      const tempCanvas2 = document.createElement("canvas");
+      tempCanvas2.width = IMAGE_WIDTH;
+      tempCanvas2.height = IMAGE_HEIGHT;
+
+      tempCanvas2.getContext("2d").putImageData(maskData, 0, 0);
+
+      const response = await axios.post(
+        IN_PAINT_URL,
+        { image: tempCanvas.toDataURL(), mask: tempCanvas2.toDataURL() },
+        {
+          params: { s: prompt },
+          responseType: "arraybuffer",
+        }
+      );
+      console.log("got response:", response);
+
+      const bytes = response.data;
+      const arrayBufferView = new Uint8Array(bytes);
+      const blob = new Blob([arrayBufferView], { type: "image/png" });
+      const urlCreator = window.URL || window.webkitURL;
+      const imageUrl = urlCreator.createObjectURL(blob);
+      console.log("img url:", imageUrl);
+
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(
+          img,
+          0,
+          0,
+          img.width,
+          img.height,
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+        undo = [];
+        undo.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+        setGenerating(false);
+      };
+      img.src = imageUrl;
+      tempCanvas.remove();
+      tempCanvas2.remove();
+      setGenerating(false);
+    } catch (e) {
+      console.log(e.response);
+      const bytes = e.response.data;
+      const arrayBufferView = new Uint8Array(bytes);
+      const blob = new Blob([arrayBufferView], { type: "application/text" });
+      console.log(await blob.text());
+      setGenerating(false);
+    }
+  };
 
   const unDo = () => {
     snapshot = undo.pop();
@@ -407,36 +480,6 @@ function App() {
 
   const restoreDraw = () => {
     ctx.putImageData([...undo].pop(), 0, 0);
-  };
-
-  const setMaskPressed = () => {
-    setMaskOn(!maskOn);
-    const canvas = document.querySelector("canvas");
-    const ctx = canvas.getContext("2d");
-
-    console.log(maskOn);
-    if (maskOn) {
-      let _mi = maskImage;
-      setNormalImage(ctx.getImageData(0, 0, canvas.width, canvas.height));
-      if (!maskImage) {
-        _mi = ctx.createImageData(canvas.width, canvas.height);
-        setMaskImage(_mi);
-      }
-      console.log("setting mask");
-      ctx.putImageData(_mi, 0, 0);
-    } else {
-      let _ni = normalImage;
-      setMaskImage(ctx.getImageData(0, 0, canvas.width, canvas.height));
-      if (!_ni) {
-        _ni = ctx.createImageData(canvas.width, canvas.height);
-        for (let i = 0; i < _ni.data.length; i += 4) {
-          _ni.data[i + 3] = 0;
-        }
-        setNormalImage(_ni);
-      }
-      console.log("setting normal");
-      ctx.putImageData(_ni, 0, 0);
-    }
   };
 
   return (
@@ -466,9 +509,6 @@ function App() {
           >
             restore
           </button>
-          <button className="draw-button" id="mask" onClick={setMaskPressed}>
-            {maskOn ? "mask" : "normal"}
-          </button>
         </div>
         <div className="row buttons draw-row">
           <input
@@ -483,6 +523,13 @@ function App() {
             disabled={generating}
           >
             {generating ? "..." : "Draw"}
+          </button>
+          <button
+            className="draw-button"
+            onClick={generateImageWithInpaint}
+            disabled={generating}
+          >
+            {generating ? "..." : "In paint Draw"}
           </button>
         </div>
         <div className="row">

@@ -1,8 +1,8 @@
-*{
+* {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Courier New", Courier, monospace;
 }
 
 body {
@@ -15,12 +15,12 @@ body {
 
 .container {
   width: 100%;
-  height:100%;
+  height: 100%;
 }
 
 section {
   background: #fff;
-} 
+}
 
 .tools-board {
   padding: 15px 22px 0;
@@ -59,7 +59,7 @@ section {
   margin-bottom: 10px;
 }
 
-.colors .options{
+.colors .options {
   display: flex;
   justify-content: space-between;
 }
@@ -69,28 +69,28 @@ section {
   width: 20px;
   background: black;
   border-radius: 50%;
-  margin-top: 3px ;
+  margin-top: 3px;
   position: relative;
 }
 
-.colors  .option:nth-child(1){
+.colors .option:nth-child(1) {
   background-color: #fff;
   border: 1px solid grey;
 }
 
-.colors  .option:nth-child(2){
+.colors .option:nth-child(2) {
   background-color: #000;
 }
 
-.colors  .option:nth-child(3){
+.colors .option:nth-child(3) {
   background-color: rgb(254, 2, 2);
 }
 
-.colors  .option:nth-child(4){
+.colors .option:nth-child(4) {
   background-color: rgb(5, 254, 1);
 }
 
-.colors  .option:nth-child(5){
+.colors .option:nth-child(5) {
   background-color: rgb(0, 144, 254);
 }
 
@@ -107,7 +107,7 @@ section {
   transition: translate(-50%, -50%);
 }
 
-.colors .option:first-child:hover::before{
+.colors .option:first-child:hover::before {
   border-color: #ccc;
 }
 
@@ -129,7 +129,7 @@ section {
   text-align: right;
 }
 .draw-row {
-    text-align: center;
+  text-align: center;
 }
 
 button {
@@ -152,18 +152,18 @@ button {
   color: black;
   border: 1px solid black;
   transition: all 0.3s ease;
-  padding: .25em;
+  padding: 0.25em;
 }
 .draw-button:disabled {
-    background: #dddddd;
+  background: #dddddd;
 }
 
 .prompt {
   width: 400px;
-  padding: .25em;
+  padding: 0.25em;
 }
 
-.button:hover{
+.button:hover {
   color: #fff;
   background: grey;
 }
@@ -189,23 +189,23 @@ button {
   display: inline;
 }
 
-  .strength {
-    margin: 1em;
-    display: block;
-  }
+.strength {
+  margin: 1em;
+  display: block;
+}
 
-  .size {
-    display: block;
-    margin: 1em;
-  }
+.size {
+  display: block;
+  margin: 1em;
+}
 /* for screens under 512 in width */
 @media screen and (max-width: 512px) {
   body {
     background: #ccc;
   }
   .drawing-board {
-    width: 256px!important;
-    height: 256px!important;
+    width: 256px !important;
+    height: 256px !important;
   }
 
   .tools-board {
@@ -221,7 +221,6 @@ button {
   }
 
   .prompt {
-    width: 280px!important;
+    width: 280px !important;
   }
-  
 }

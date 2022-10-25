@@ -35,26 +35,21 @@ const allowCors = (fn) => async (req, res) => {
 const handler = async (req, res) => {
   // get the "s" param from the query string
   const { s } = req.query;
-  console.log("received request");
+  console.log("received request", s);
 
-  const buf = await buffer(req);
-  const rawBody = buf.toString("utf8");
-
-  // cors proxy
-  // redirect POST request to https://stable-diffusion.webaverse.com/mod
-  // then return response to original requester
   axios
-    .post("https://stable-diffusion.webaverse.com/mod", rawBody, {
+    .post("http://216.153.52.22:7777/inpaint", req.body, {
       params: { s },
       headers: { "Access-Control-Allow-Origin": "*" },
       responseType: "arraybuffer",
     })
-    .then((response) => {
-      console.log("sending response");
-      res.send(response.data);
+    .then(async (response) => {
+      console.log("sending response", response.data);
+      console.log(response.status);
+      return await res.send(response.data);
     })
     .catch((error) => {
-      console.log(error);
+      console.log("error:", error);
       res.status(500).json(error);
     });
 };
