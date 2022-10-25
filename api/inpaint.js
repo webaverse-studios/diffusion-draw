@@ -35,7 +35,7 @@ const allowCors = (fn) => async (req, res) => {
 const handler = async (req, res) => {
   // get the "s" param from the query string
   const { s } = req.query;
-  console.log("received request", s);
+  console.log("received request");
 
   axios
     .post("http://216.153.52.22:7777/inpaint", req.body, {
@@ -44,8 +44,7 @@ const handler = async (req, res) => {
       responseType: "arraybuffer",
     })
     .then(async (response) => {
-      console.log("sending response", response.data);
-      console.log(response.status);
+      console.log("sending response");
       return await res.send(response.data);
     })
     .catch((error) => {
