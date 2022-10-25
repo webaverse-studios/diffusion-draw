@@ -387,7 +387,10 @@ function App() {
       }
 
       setGenerating(true);
-      const imgData = undo[undo.length - 2];
+      let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      try {
+        imgData = undo[undo.length - 2];
+      } catch (e) {}
       const maskData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       for (let i = 0; i < maskData.data.length; i += 4) {
         if (
@@ -452,11 +455,7 @@ function App() {
       tempCanvas2.remove();
       setGenerating(false);
     } catch (e) {
-      console.log(e.response);
-      const bytes = e.response.data;
-      const arrayBufferView = new Uint8Array(bytes);
-      const blob = new Blob([arrayBufferView], { type: "application/text" });
-      console.log(await blob.text());
+      console.log(e);
       setGenerating(false);
     }
   };
