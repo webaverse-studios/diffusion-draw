@@ -359,8 +359,6 @@ function App() {
         IMAGE_WIDTH,
         IMAGE_HEIGHT,
         async (sizeUpdatedDataURL) => {
-          
-          console.log("generating image", sizeUpdatedDataURL)
           const response = await axios.post(
             STABLE_DIFFUSION_URL,
             {
@@ -379,11 +377,9 @@ function App() {
             }
           );
 
-          console.log("response:", response.data)
           const res = response.data.output.file[0][0]
-          console.log('res:', res)
 
-          const blb = b64toBlob(res, 'image/png')
+          const blb = b64toBlob(res.split(',')[1], 'image/png')
           const urlCreator = window.URL || window.webkitURL;
           const imageUrl = urlCreator.createObjectURL(blb);
 
