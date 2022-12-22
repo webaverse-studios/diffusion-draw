@@ -324,6 +324,26 @@ function App() {
     input.click();
   };
 
+  const b64toBlob = (b64Data, contentType = '', sliceSize = 512) => {
+    const byteCharacters = atob(b64Data);
+    const byteArrays = [];
+  
+    for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+      const slice = byteCharacters.slice(offset, offset + sliceSize);
+  
+      const byteNumbers = new Array(slice.length);
+      for (let i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+  
+      const byteArray = new Uint8Array(byteNumbers);
+      byteArrays.push(byteArray);
+    }
+  
+    const blob = new Blob(byteArrays, {type: contentType});
+    return blob;
+  };
+
   const generateImage = () => {
     try {
       if (generating) {
@@ -360,11 +380,12 @@ function App() {
           );
 
           console.log("response:", response.data)
-          const res = response.data.output.file[0]
+          const res = response.data.output.file[0][0]
           console.log('res:', res)
 
+          const blb = b64toBlob(res, 'image/png')
           const urlCreator = window.URL || window.webkitURL;
-          const imageUrl = urlCreator.createObjectURL(response.data);
+          const imageUrl = urlCreator.createObjectURL(blb);
 
           const img = new Image();
           img.onload = () => {
