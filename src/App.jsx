@@ -354,15 +354,12 @@ function App() {
             },
             {
               headers: { "Access-Control-Allow-Origin": "*" },
-              responseType: "arraybuffer",
+              responseType: 'blob',
             }
           );
 
-          const bytes = response.data;
-          const arrayBufferView = new Uint8Array(bytes);
-          const blob = new Blob([arrayBufferView], { type: "image/png" });
           const urlCreator = window.URL || window.webkitURL;
-          const imageUrl = urlCreator.createObjectURL(blob);
+          const imageUrl = urlCreator.createObjectURL(response.data);
 
           const img = new Image();
           img.onload = () => {
