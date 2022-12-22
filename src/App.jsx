@@ -339,11 +339,20 @@ function App() {
         IMAGE_WIDTH,
         IMAGE_HEIGHT,
         async (sizeUpdatedDataURL) => {
+          
           const response = await axios.post(
             STABLE_DIFFUSION_URL,
-            sizeUpdatedDataURL,
             {
-              params: { s: prompt },
+              input: {
+                input: sizeUpdatedDataURL,
+                prompts: prompt,
+                strength: .85,
+                guidance_scale: 7.5,
+                split: 'none',
+                req_type: 'tile',
+              },
+            },
+            {
               headers: { "Access-Control-Allow-Origin": "*" },
               responseType: "arraybuffer",
             }

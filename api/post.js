@@ -37,14 +37,13 @@ const handler = async (req, res) => {
   const { s } = req.query;
   console.log("received request");
 
-  const buf = await buffer(req);
-  const rawBody = buf.toString("utf8");
+  const rawBody = req.body
 
   // cors proxy
   // redirect POST request to https://stable-diffusion.webaverse.com/mod
   // then return response to original requester
   axios
-    .post("https://stable-diffusion.webaverse.com/mod", rawBody, {
+    .post("https://ai_prod.webaverse.studio/predictions", rawBody, {
       params: { s },
       headers: { "Access-Control-Allow-Origin": "*" },
       responseType: "arraybuffer",
