@@ -360,6 +360,8 @@ function App() {
           );
 
           console.log("response:", response.data)
+          const res = response.data.output.file[0]
+          console.log('res:', res)
 
           const urlCreator = window.URL || window.webkitURL;
           const imageUrl = urlCreator.createObjectURL(response.data);
