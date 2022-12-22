@@ -355,7 +355,7 @@ function App() {
             },
             {
               headers: { "Access-Control-Allow-Origin": "*" },
-              responseType: 'blob',
+              responseType: 'json',
             }
           );
 
